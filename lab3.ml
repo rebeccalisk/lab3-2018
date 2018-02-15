@@ -56,7 +56,8 @@ be any of the following options: red, crimson, orange, yellow, green,
 blue, indigo, or violet.
 ......................................................................*)
 
-type color_label = NotImplemented ;;
+type color_label = 
+  | Red | Crimson | Orange | Yellow | Green | Blue | Indigo | Violet ;;
 
 (* You've just defined a new variant type! But this is an overly
 simplistic representation of colors. Let's make it more usable.
@@ -91,7 +92,7 @@ channels. You'll want to use Simple and RGB as the value constructors
 in this new variant type.
 ......................................................................*)
 
-type color = NotImplemented ;;
+type color = RGB of (int * int * int) |  Simple of color_label;;
 
 (* Note that there is an important assumption about the RGB values
 that determine whether a color is valid or not. The RGB type contains
@@ -118,7 +119,13 @@ an Invalid_Color exception with a useful message.
 exception Invalid_Color of string ;;
 
 let valid_rgb = 
-  fun _ -> failwith "valid_rgb not implemented" ;;
+  fun (color_tuple : color) : color -> 
+    match color_tuple with
+    | RGB (x, y, z) -> if ((0 <= x) && (x <= 255) && (0 <= y) && (y <= 255) && (0 <= z) && (z <= 255)) then RGB (x, y, z)
+                   else raise (Invalid_Color "out of range")
+    | Simple x -> Simple x
+    | _ -> raise (Invalid_Color "not of type simple or RGB")
+  ;;
 
 (*......................................................................
 Exercise 3: Write a function, make_color, that accepts three integers
@@ -205,7 +212,12 @@ should be. Then, consider the implications of representing the overall
 data type as a tuple or a record.
 ......................................................................*)
 
-type date = NotImplemented ;;
+type date = 
+{
+  years : int ;
+  months : int ;
+  days : int ;
+} ;;
 
 (* After you've thought it through, look up the Date module in the
 OCaml documentation to see how this was implemented there. If you
@@ -248,7 +260,18 @@ the invariant is violated, and returns the date if valid.
 exception Invalid_Date of string ;;
 
 let valid_date = 
-  fun _ -> failwith "valid_date not implemented" ;;
+  fun (x : date) : date -> 
+    if ((x.years mod 4 = 0) && (x.years mod 100 <> 0) || (x.years mod 400 = 0))
+        then match x.months with
+             | 2  -> if (x.days <= 29) then date 
+                     else raise (Invalid_Date "no such day")
+        else match x.months with 
+             | 1 | 3 | 5 | 7 | 8 | 9 | 10 | 12 -> if ((x.days <= 31) && (x.days > 0)) then date 
+                                                  else raise (Invalid_Date "no such day")
+             | 4 | 6 | 9 | 11 -> if ((x.days <= 30) && (x.days > 0)) then date 
+                                 else raise (Invalid_Date "no such day")
+             | _ -> else raise (Invalid_Date "no such month") ;;
+
 
 
 (*======================================================================
